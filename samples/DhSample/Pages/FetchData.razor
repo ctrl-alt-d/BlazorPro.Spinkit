@@ -1,0 +1,81 @@
+﻿@page "/fetchdata"
+
+@using DhSample.Data
+@inject WeatherForecastService ForecastService
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+<div class="form-check">
+    <input type="checkbox" class="form-check-input" id="delay1" @bind="@delay1">
+    <label class="form-check-label" for="delay1">Execute <code>Task.Delay(0)</code></label>
+</div>
+
+<button class="btn btn-primary" @onclick="@FetchDataFromService">Fetch data</button>
+
+<button class="btn btn-primary" @onclick="_ => {forecasts=null;}">Clear data</button>
+
+<SpinLoader IsLoading="isLoading" IsFaulted="hasError" Size="46px" Color="#3498db" Center="true">
+    <ContentTemplate>
+
+    @if (forecasts != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Temp. (C)</th>
+                    <th>Temp. (F)</th>
+                    <th>Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var forecast in forecasts)
+                {
+                    <tr>
+                        <td>@forecast.Date.ToShortDateString()</td>
+                        <td>@forecast.TemperatureC</td>
+                        <td>@forecast.TemperatureF</td>
+                        <td>@forecast.Summary</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    </ContentTemplate>
+    <FaultedContentTemplate>
+        <tr>
+            <td colspan="4">
+                <div class="alert alert-danger">Fail</div>
+            </td>
+        </tr>
+    </FaultedContentTemplate>    
+</SpinLoader>
+
+@code {
+
+    private bool hasError = false;
+    private bool isLoading = false;
+    private WeatherForecast[] forecasts;
+
+    private bool delay1 = true;
+
+    protected async Task FetchDataFromService()
+    {
+        try
+        {
+            isLoading = true;
+            if (delay1) await Task.Delay(1);
+            forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        }
+        catch (Exception)
+        {
+            hasError = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
